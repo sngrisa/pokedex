@@ -1,47 +1,47 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, Res } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreatePokemonDto, UpdatePokemonDto } from './dto/index.dto';
 import { Pokemon } from './entities/pokemon.entity';
 import { isValidObjectId, Model } from 'mongoose';
-import { Response } from 'express';
+import { PaginationDTO } from '../common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
 export class PokemonService {
 
+  private defaultsOffsetAndLimit: number[] = []; 
 
   constructor(
     @InjectModel(Pokemon.name)
-    private readonly pokemonModel: Model<Pokemon>
-  ) { }
+    private readonly pokemonModel: Model<Pokemon>,
+    private readonly envConfig: ConfigService
+  ) {
+    this.defaultsOffsetAndLimit.push(Number(this.envConfig.get<number>('defaultLimit')))
+    this.defaultsOffsetAndLimit.push(Number(this.envConfig.get<number>('defaultOffset')))
+  }
 
-  async create(createPokemonDto: CreatePokemonDto, @Res() response: Response): Promise<void> {
+  async create(createPokemonDto: CreatePokemonDto): Promise<void> {
     try {
       createPokemonDto.namepokemon = createPokemonDto.namepokemon.toLowerCase();
-      response.status(201).json({
-        ok: true,
-        msg: "Data created in database !!!!",
-        createPokemonDto
-      })
       await this.pokemonModel.create(createPokemonDto);
     } catch (err: any) { this.handledErrors(err); }
   }
 
-  async findAll(@Res() response: Response): Promise<Pokemon[] | any> {
+  async findAll({ limit = this.defaultsOffsetAndLimit[0], offset = this.defaultsOffsetAndLimit[1]}: PaginationDTO): Promise<Pokemon[] | any> {
     try {
-      let data: Pokemon[] = await this.pokemonModel.find({});
-      response.status(201).json({
-        ok: true,
-        msg: "Results found!!!!",
-        data
-      })
+      let data: Pokemon[] = await this.pokemonModel.find()
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .sort({ no: 1 })
+        .select('-__v');
       return data;
     } catch (err: any) { this.handledErrors(err); }
   }
 
   async findOne(str: string): Promise<Pokemon | any> {
     try {
-      return (!isNaN(+str)) ? await this.pokemonModel.findOne({ no: str }) : isValidObjectId(str) ? await this.pokemonModel.findById({ _id: str }) : await this.pokemonModel.findOne({ namepokemon: str.trim().toLocaleLowerCase() });
+      return (!isNaN(+str)) ? await this.pokemonModel.findOne({ no: str }).sort({no: 1}).select('-__v') : isValidObjectId(str) ? await this.pokemonModel.findById({ _id: str }).sort({no: 1}).select('-__v') : await this.pokemonModel.findOne({ namepokemon: str.trim().toLocaleLowerCase() }).sort({no: 1}).select('-__v');
     } catch (err: any) { this.handledErrors(err); }
   }
 

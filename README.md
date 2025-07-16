@@ -2,7 +2,7 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-# Descripcion
+# Descripción
 
 Este proyecto se trata del desarrollo de un backend usando mongodb como base de datos mediante docker con NetJS
 
@@ -47,4 +47,34 @@ npm run start
 4 - Ejecutar el comando (Para montar la base de datos)
 ```
 docker-compose up -d
+```
+5 - Clonar el archivo   
+```
+.env.template
+```
+y renombrar el archivo a
+```
+.env
+```
+6 - Rellenar el contenido de las variables de entorno ya definidas
+```
+.env
+```
+7- Ejecutar el comando (en ambiente de desarrollo):
+```
+yarn start
+```
+8 - Ejecutar el comando (Para reconstruir la base de datos con la semilla)
+```
+Peticion Get(http://localhost:3000/api/v2/seed)
+```
+9 - Despliege en produccion
+a - Para el despliege en producción (crear el siguiente archivo)
+```
+.env.prod
+```
+b - Llenar las variables de entorno de produccion
+c - Crear la nueva imagen
+```
+docker-compose -f docker-compose.prod.yaml --env-file .env.prod up --build
 ```

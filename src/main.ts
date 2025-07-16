@@ -12,12 +12,16 @@ const Main = async (): Promise<void> => {
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
-        forbidNonWhitelisted: true
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions:{
+          enableImplicitConversion: true
+        }
       })
     )
 
-    await app.listen(process.env.port ?? 3000);
-
+    await app.listen(process.env.port ?? 4100);
+    console.info(`Backend Pokedex running on port ${process.env.port}`)
   } catch (err: unknown) {
     throw new NotFoundException(err);
   }
